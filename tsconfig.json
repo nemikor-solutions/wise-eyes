@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "baseUrl": "src",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "commonjs",
+    "outDir": "./dist",
+    "skipLibCheck": true,
+    "strict": true
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "ts-node": {
+    "files": true
+  }
+}
