@@ -1,4 +1,8 @@
+import type Express from 'express';
 import type {
+    BreakType,
+    CeremonyType,
+    FopState,
     Mode,
 } from './platform';
 
@@ -6,11 +10,67 @@ import cors from 'cors';
 import express from 'express';
 import Platform from './platform';
 
+type BooleanString =
+    | 'false'
+    | 'true';
+
+interface DecisionBody {
+    d1?: BooleanString;
+    d2?: BooleanString;
+    d3?: BooleanString;
+    down?: BooleanString;
+    decisionEventType:
+        | 'DOWN_SIGNAL'
+        | 'FULL_DECISION'
+        | 'RESET';
+    fop: string;
+    fopState: FopState;
+    mode: Mode;
+}
 type PlatformCallback = (platform: Platform) => void;
 
+interface Request<Body> extends Express.Request {
+    body: Body;
+}
+
+interface TimerBody {
+    athleteMillisRemaining?: number
+    athleteTimerEventType?:
+        | 'SetTime'
+        | 'StartTime'
+        | 'StopTime';
+    break:
+        | 'false'
+        | 'true';
+    breakMillisRemaining?: number;
+    breakTimerEventType?:
+        | 'BreakPaused'
+        | 'BreakSet'
+        | 'BreakStarted';
+    breakType?: BreakType;
+    ceremonyType?: CeremonyType;
+    fopName: string;
+    fopState: FopState;
+    mode: Mode;
+}
+
+interface UpdateBody {
+    breakType?: BreakType;
+    ceremonyType?: CeremonyType;
+    fop: string;
+    fopState: FopState;
+    groupAthletes: string;
+    groupInfo: string;
+    groupName: string;
+    leaders: string;
+    liftingOrderAthletes: string;
+    mode: Mode;
+    startNumber: string;
+    translationMap: string;
+}
 const app = express();
 
-const DEBUG = false;
+const DEBUG = process.env.DEBUG;
 
 app.use(cors());
 app.use(express.urlencoded({
@@ -18,10 +78,11 @@ app.use(express.urlencoded({
 }));
 
 // TODO: Jury decisions
+// TODO: Record attempts
 
 function withPlatform(
     request: express.Request,
-    response: express.Response,
+    _response: express.Response,
     callback: PlatformCallback
 ): void {
     const platform = Platform.getPlatform(request.params.platform);
@@ -29,34 +90,7 @@ function withPlatform(
     callback(platform);
 }
 
-function handleMode({
-    breakType,
-    mode,
-    platform,
-}: {
-    breakType: Mode;
-    mode: string;
-    platform: Platform;
-}): void {
-    switch (mode) {
-        case 'CEREMONY':
-        case 'CURRENT_ATHLETE':
-        case 'INTERRUPTION':
-        case 'INTRO_COUNTDOWN':
-        case 'LIFT_COUNTDOWN':
-            platform.setMode(breakType || 'LIFTING');
-            break;
-        case 'WAIT':
-            platform.setMode('BEFORE_SESSION');
-            break;
-        default:
-            if (DEBUG) {
-                console.log(`!! UNHANDLED MODE mode=${mode}`)
-            }
-    }
-}
-
-app.post('/decision', (request, response) => {
+app.post('/decision', (request: Request<DecisionBody>, response) => {
     response.end();
 
     if (DEBUG) {
@@ -64,44 +98,56 @@ app.post('/decision', (request, response) => {
         console.log(request.body);
     }
 
-    const platform = Platform.getPlatform(request.body.fop);
+    const {
+        d1,
+        d2,
+        d3,
+        decisionEventType: eventType,
+        down,
+        fop,
+        fopState,
+        mode,
+    } = request.body;
 
-    switch (request.body.eventType) {
+    const platform = Platform.getPlatform(fop);
+
+    platform.setFopState(fopState);
+    platform.setMode(mode);
+
+    switch (eventType) {
+        case 'DOWN_SIGNAL':
+            platform.setDownSignal(down === 'true');
+            break;
         case 'FULL_DECISION':
             platform.setDecisions({
-                centerReferee: !request.body.d2
+                centerReferee: !d2
                     ? null
-                    : request.body.d2 === 'true'
+                    : d2 === 'true'
                         ? 'good'
                         : 'bad',
-                leftReferee: !request.body.d1
+                leftReferee: !d1
                     ? null
-                    : request.body.d1 === 'true'
+                    : d1 === 'true'
                         ? 'good'
                         : 'bad',
-                rightReferee: !request.body.d3
+                rightReferee: !d3
                     ? null
-                    : request.body.d3 === 'true'
+                    : d3 === 'true'
                         ? 'good'
                         : 'bad',
             });
             break;
-        case 'DOWN_SIGNAL':
-            platform.setDownSignal(request.body.down === 'true');
-            break;
-        // TODO: Potentially ignore resets and just use other clock events
-        // or some custom timeout for resetting
         case 'RESET':
             platform.resetDecisions();
             break;
         default:
             if (DEBUG) {
-                console.log(`!! UNHANDLED DECISION EVENT eventType=${request.body.eventType}`);
+                console.log(`!! UNHANDLED DECISION EVENT decisionEventType=${eventType}`);
             }
     }
 });
 
-app.post('/timer', (request, response) => {
+app.post('/timer', (request: Request<TimerBody>, response) => {
     response.end();
 
     if (DEBUG) {
@@ -109,82 +155,83 @@ app.post('/timer', (request, response) => {
         console.log(request.body);
     }
 
-    const platform = Platform.getPlatform(request.body.fopName);
-    const athleteClock = platform.getAthleteClock();
-    const breakClock = platform.getBreakClock();
+    const {
+        athleteMillisRemaining,
+        athleteTimerEventType,
+        breakTimerEventType,
+        breakMillisRemaining,
+        breakType,
+        ceremonyType,
+        fopName,
+        fopState,
+        mode,
+    } = request.body;
 
-    switch (request.body.eventType) {
-        case 'BreakPaused':
-        case 'BreakSetTime':
-        case 'BreakStarted':
-            breakClock.update({
-                isStopped: request.body.eventType !== 'BreakStarted',
-                milliseconds: request.body.milliseconds
-                    ? request.body.milliseconds
-                    : Number.POSITIVE_INFINITY,
-            });
-            break;
-        case 'SetTime':
-        case 'StartTime':
-        case 'StopTime':
-            athleteClock.update({
-                isStopped: request.body.eventType !== 'StartTime',
-                milliseconds: request.body.milliseconds,
-            });
-            break;
-        default:
-            if (DEBUG) {
-                console.log(`!! UNHANDLED TIMER EVENT eventType=${request.body.eventType}`);
-            }
+    const platform = Platform.getPlatform(fopName);
+    platform.setBreakType(breakType || null);
+    platform.setCeremonyType(ceremonyType || null);
+    platform.setFopState(fopState);
+    platform.setMode(mode);
+
+    if (breakTimerEventType) {
+        platform.getBreakClock().update({
+            isStopped: breakTimerEventType !== 'BreakStarted',
+            milliseconds: breakMillisRemaining ?? Number.POSITIVE_INFINITY,
+        });
     }
 
-    handleMode({
-        breakType: request.body.breakType,
-        mode: request.body.mode,
-        platform,
-    });
+    if (athleteTimerEventType) {
+        platform.getAthleteClock().update({
+            isStopped: athleteTimerEventType !== 'StartTime',
+            milliseconds: athleteMillisRemaining as number,
+        });
+    }
 });
 
-app.post('/update', (request, response) => {
+app.post('/update', (request: Request<UpdateBody>, response) => {
     response.end();
 
     if (DEBUG) {
         console.log('/update');
-        // console.log(request.body);
+        (({
+            groupAthletes,
+            leaders,
+            liftingOrderAthletes,
+            translationMap,
+            ...params
+        }) => {
+            console.log(
+                Object.fromEntries(
+                    Object.entries(params)
+                        .sort((a, b) => a[0].localeCompare(b[0]))
+                )
+            );
+        })(request.body);
     }
 
-    const platform = Platform.getPlatform(request.body.fop);
+    const {
+        breakType,
+        ceremonyType,
+        fop,
+        fopState,
+        groupInfo,
+        groupName,
+        liftingOrderAthletes,
+        mode,
+        startNumber,
+    } = request.body;
 
+    const platform = Platform.getPlatform(fop);
+    platform.setBreakType(breakType || null);
+    platform.setCeremonyType(ceremonyType || null);
+    platform.setFopState(fopState);
+    platform.setMode(mode);
     platform.setSession({
-        description: request.body.groupInfo,
-        name: request.body.groupName,
+        description: groupInfo,
+        name: groupName,
     });
-    platform.updateAthletes(JSON.parse(request.body.liftingOrderAthletes));
-    platform.setCurrentAthlete(parseInt(request.body.startNumber));
-
-    // This is our first update for this session, so get the current mode
-    // from the update event. All future mode updates will come from
-    // timer events.
-    if (platform.getState().mode === 'BEFORE_SESSION') {
-        const breakType = request.body.breakType;
-        handleMode({
-            breakType,
-            mode: request.body.mode,
-            platform,
-        });
-
-        if (breakType) {
-            const breakClock = platform.getBreakClock();
-            const indefinite = request.body.breakIsIndefinite === 'true';
-
-            breakClock.update({
-                isStopped: !indefinite,
-                milliseconds: indefinite
-                    ? Number.POSITIVE_INFINITY
-                    : request.body.breakRemaining,
-            });
-        }
-    }
+    platform.updateAthletes(JSON.parse(liftingOrderAthletes));
+    platform.setCurrentAthlete(parseInt(startNumber));
 });
 
 app.get('/platform/:platform/athlete-clock', (request, response) => {

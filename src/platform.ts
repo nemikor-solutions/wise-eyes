@@ -10,26 +10,39 @@ import type {
 import Athlete from './athlete';
 import Clock from './clock';
 
+// TODO
+export type BreakType = string;
+
+// TODO
+export type CeremonyType = string;
+
 export type Decision =
     | 'bad'
     | 'good';
 
+// TODO
+export type FopState = string;
+
 export type Mode =
     | 'BEFORE_INTRODUCTION'
-    | 'BEFORE_SESSION'
     | 'FIRST_CJ'
     | 'FIRST_SNATCH'
     | 'INTRODUCTION'
+    | 'LIFT_COUNTDOWN_CEREMONY'
     | 'LIFTING'
     | 'MARSHAL'
-    | 'TECHNICAL';
+    | 'TECHNICAL'
+    | 'WAIT';
 
 export interface PlatformState {
     athlete: AthleteState | null;
     athleteClock: ClockState;
     breakClock: ClockState;
+    breakType: BreakType | null;
     centerReferee: Decision | null;
+    ceremonyType: CeremonyType | null;
     downSignal: boolean;
+    fopState: FopState | null;
     leftReferee: Decision | null;
     mode: Mode | null;
     name: string;
@@ -52,7 +65,11 @@ export default class Platform {
 
     private breakClock: Clock;
 
+    private breakType: BreakType | null = null;
+
     private centerReferee: Decision | null = null;
+
+    private ceremonyType: CeremonyType | null = null;
 
     private currentAthlete: Athlete | null = null;
 
@@ -60,11 +77,13 @@ export default class Platform {
 
     private downSignal = false;
 
+    private fopState: FopState = 'INACTIVE';
+
     private leftReferee: Decision | null = null;
 
     private liftingOrder: number[] = [];
 
-    private mode: Mode = 'BEFORE_SESSION';
+    private mode: Mode = 'WAIT';
 
     private name: string;
 
@@ -117,8 +136,11 @@ export default class Platform {
             athlete: this.currentAthlete?.getState() || null,
             athleteClock: this.athleteClock.getState(),
             breakClock: this.breakClock.getState(),
+            breakType: this.breakType,
             centerReferee: this.centerReferee,
+            ceremonyType: this.ceremonyType,
             downSignal: this.downSignal,
+            fopState: this.fopState,
             leftReferee: this.leftReferee,
             mode: this.mode,
             name: this.name,
@@ -133,6 +155,18 @@ export default class Platform {
         this.downSignal = false;
         this.leftReferee = null;
         this.rightReferee = null;
+    }
+
+    public setBreakType(breakType: BreakType | null): void {
+        this.breakType = breakType;
+    }
+
+    public setCeremonyType(ceremonyType: CeremonyType | null): void {
+        this.ceremonyType = ceremonyType;
+    }
+
+    public setFopState(fopState: FopState): void {
+        this.fopState = fopState;
     }
 
     public setMode(mode: Mode): void {
