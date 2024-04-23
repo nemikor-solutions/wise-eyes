@@ -234,6 +234,11 @@ app.post('/update', (request: Request<UpdateBody>, response) => {
     platform.setCurrentAthlete(parseInt(startNumber));
 });
 
+app.get('/', (request, response) => {
+    response.json({
+        platforms: Platform.getPlatforms(),
+    });
+})
 app.get('/platform/:platform/athlete-clock', (request, response) => {
     withPlatform(request, response, (platform) => {
         response.json([platform.getAthleteClock().getState()]);

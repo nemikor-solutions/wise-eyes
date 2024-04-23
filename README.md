@@ -6,6 +6,10 @@ A web server to monitor the status of owlcms. Originally designed for use with [
 
 ## Routes
 
+### `/`
+
+Lists the names of all platforms.
+
 ### `/platform/:platform/status`
 
 The current state of the platform, including the current athlete, the athlete clock, the break clock, and decision information.

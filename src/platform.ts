@@ -103,6 +103,10 @@ export default class Platform {
         return platform;
     }
 
+    public static getPlatforms(): string[] {
+        return Array.from(this.platforms.keys());
+    }
+
     public constructor({
         name,
     }: {
