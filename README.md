@@ -4,6 +4,8 @@
 
 A web server to monitor the status of owlcms. Originally designed for use with [vMix](https://www.vmix.com/) for custom livestream content during weightlifting meets, but flexible enough to drive any system that wants to poll the current state.
 
+_Requires owlcms v48 or newer_
+
 ## Routes
 
 ### `/`
