@@ -27,6 +27,7 @@ interface DecisionBody {
     fopState: FopState;
     mode: Mode;
 }
+
 type PlatformCallback = (platform: Platform) => void;
 
 interface Request<Body> extends Express.Request {
@@ -39,9 +40,7 @@ interface TimerBody {
         | 'SetTime'
         | 'StartTime'
         | 'StopTime';
-    break:
-        | 'false'
-        | 'true';
+    break: BooleanString;
     breakMillisRemaining?: number;
     breakTimerEventType?:
         | 'BreakPaused'
@@ -68,6 +67,7 @@ interface UpdateBody {
     startNumber: string;
     translationMap: string;
 }
+
 const app = express();
 
 const DEBUG = process.env.DEBUG;
