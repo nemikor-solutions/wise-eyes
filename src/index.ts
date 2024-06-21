@@ -6,6 +6,8 @@ import type {
     Mode,
 } from './platform';
 
+import Athlete from './athlete';
+import athleteData from './athlete-data';
 import cors from 'cors';
 import express from 'express';
 import Platform from './platform';
@@ -67,6 +69,8 @@ interface UpdateBody {
     startNumber: string;
     translationMap: string;
 }
+
+Athlete.loadMeta(athleteData);
 
 const app = express();
 

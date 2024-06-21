@@ -13,7 +13,7 @@ export interface AthleteState {
     clean3WeightPounds: number | null;
     cleanRank: number | null;
     membership: string | null;
-    meta: object | null;
+    meta: Record<string, unknown> | null;
     name: string;
     nextWeight: number | null;
     nextWeightPounds: number | null;
@@ -39,7 +39,7 @@ type AttemptState =
     | 'good'
     | 'request';
 
-export type Meta = Record<string, object>;
+export type Meta = Record<string, Record<string, unknown>>;
 
 export interface OwlcmsAthlete {
     bestCleanJerk: string;
@@ -79,9 +79,24 @@ export interface OwlcmsAttempt {
 export default class Athlete {
     private static meta: Meta = {};
 
+    private static metaFields: string[] = [];
+
     private state!: AthleteState;
 
+    public static getMeta(membership: string) {
+        const meta: Record<string, unknown> = this.meta[membership] || {};
+
+        this.metaFields.forEach((field) => {
+            if (meta[field] == null) {
+                meta[field] = '';
+            }
+        });
+
+        return meta;
+    }
+
     public static loadMeta(meta: Meta) {
+        this.metaFields = Object.keys(meta[Object.keys(meta)[0]]);
         this.meta = meta;
     }
 
@@ -134,7 +149,7 @@ export default class Athlete {
             clean3WeightPounds: this.parseWeightPounds(data.cattempts[2].stringValue) || null,
             category: data.category,
             membership: data.membership || null,
-            meta: Athlete.meta[data.membership] || null,
+            meta: Athlete.getMeta(data.membership),
             name: data.fullName,
             nextWeight: this.getNextWeight(data),
             nextWeightPounds: this.getNextWeightPounds(data),
