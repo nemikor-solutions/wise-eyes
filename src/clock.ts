@@ -35,16 +35,33 @@ export default class Clock {
             return '';
         }
 
-        const totalSeconds = Math.round(milliseconds / 1000);
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds - minutes * 60;
+        let seconds = Math.round(milliseconds / 1000);
 
-        return [
+        const hours = Math.floor(seconds / 60 / 60);
+        seconds -= hours * 60 * 60;
+
+        const minutes = Math.floor(seconds / 60);
+        seconds -= minutes * 60;
+
+        let parts: Array<string | number> = [];
+
+        if (hours > 0) {
+            parts = [
+                hours,
+                ':',
+                minutes < 10 ? '0' : '',
+            ];
+        }
+
+        parts = [
+            ...parts,
             minutes,
             ':',
             seconds < 10 ? '0' : '',
             seconds,
-        ].join('');
+        ];
+
+        return parts.join('');
     }
 
     public getState(): ClockState {
