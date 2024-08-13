@@ -1,4 +1,5 @@
 export interface AthleteState {
+    attemptNumber: number | null;
     bestClean: number | null;
     bestSnatch: number | null;
     category: string;
@@ -104,6 +105,17 @@ export default class Athlete {
         this.update(data);
     }
 
+    private getAttemptNumber(data: OwlcmsAthlete): number | null {
+        let requestedAttemptIndex = [
+            ...data.sattempts,
+            ...data.cattempts,
+        ].findIndex((attempt) => attempt.liftStatus === 'request');
+
+        return requestedAttemptIndex == null
+            ? null
+            : (requestedAttemptIndex % 3) + 1;
+    }
+
     private getNextWeight(data: OwlcmsAthlete): number | null {
         let requestedAttempt = [
             ...data.sattempts,
@@ -135,6 +147,7 @@ export default class Athlete {
 
     public update(data: OwlcmsAthlete): void {
         this.state = {
+            attemptNumber: this.getAttemptNumber(data),
             bestClean: parseInt(data.bestCleanJerk) || null,
             bestSnatch: parseInt(data.bestSnatch) || null,
             cleanRank: parseInt(data.cleanJerkRank) || null,

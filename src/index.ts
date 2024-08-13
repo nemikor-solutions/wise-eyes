@@ -4,6 +4,7 @@ import type {
     CeremonyType,
     FopState,
     Mode,
+    OwlcmsLiftType,
 } from './platform';
 
 import cors from 'cors';
@@ -50,19 +51,24 @@ interface TimerBody {
     ceremonyType?: CeremonyType;
     fopName: string;
     fopState: FopState;
+    indefiniteBreak: BooleanString;
     mode: Mode;
 }
 
 interface UpdateBody {
+    attemptNumber: string;
     breakType?: BreakType;
     ceremonyType?: CeremonyType;
     fop: string;
     fopState: FopState;
     groupAthletes: string;
+    groupDescription: string;
     groupInfo: string;
     groupName: string;
     leaders: string;
     liftingOrderAthletes: string;
+    liftTypeKey: OwlcmsLiftType;
+    liftType: string;
     mode: Mode;
     startNumber: string;
     translationMap: string;
@@ -164,6 +170,7 @@ app.post('/timer', (request: Request<TimerBody>, response) => {
         ceremonyType,
         fopName,
         fopState,
+        indefiniteBreak,
         mode,
     } = request.body;
 
@@ -174,9 +181,17 @@ app.post('/timer', (request: Request<TimerBody>, response) => {
     platform.setMode(mode);
 
     if (breakTimerEventType) {
+        // When a break ends, we will not receive `indefiniteBreak`, but we
+        // can consider the end of a break to always considered indefinite since
+        // we're waiting for the next part of the competition to start with no
+        // running clock.
+        const isIndefinite = !indefiniteBreak || indefiniteBreak === 'true'
+
         platform.getBreakClock().update({
             isStopped: breakTimerEventType !== 'BreakStarted',
-            milliseconds: breakMillisRemaining ?? Number.POSITIVE_INFINITY,
+            milliseconds: isIndefinite
+                ? Number.POSITIVE_INFINITY
+                : breakMillisRemaining as number,
         });
     }
 
@@ -214,9 +229,12 @@ app.post('/update', (request: Request<UpdateBody>, response) => {
         ceremonyType,
         fop,
         fopState,
+        groupDescription,
         groupInfo,
         groupName,
         liftingOrderAthletes,
+        liftType,
+        liftTypeKey,
         mode,
         startNumber,
     } = request.body;
@@ -225,9 +243,14 @@ app.post('/update', (request: Request<UpdateBody>, response) => {
     platform.setBreakType(breakType || null);
     platform.setCeremonyType(ceremonyType || null);
     platform.setFopState(fopState);
+    platform.setLiftType({
+        key: liftTypeKey,
+        name: liftType,
+    });
     platform.setMode(mode);
     platform.setSession({
-        description: groupInfo,
+        description: groupDescription,
+        info: groupInfo,
         name: groupName,
     });
     platform.updateAthletes(JSON.parse(liftingOrderAthletes));

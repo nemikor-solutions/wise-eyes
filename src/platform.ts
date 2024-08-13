@@ -23,6 +23,10 @@ export type Decision =
 // TODO
 export type FopState = string;
 
+export type LiftTypeKey =
+    | 'CLEAN_AND_JERK'
+    | 'SNATCH';
+
 export type Mode =
     | 'BEFORE_INTRODUCTION'
     | 'FIRST_CJ'
@@ -34,6 +38,10 @@ export type Mode =
     | 'TECHNICAL'
     | 'WAIT';
 
+export type OwlcmsLiftType =
+    | 'Clean_and_Jerk'
+    | 'Snatch';
+
 export interface PlatformState {
     athlete: AthleteState | null;
     athleteClock: ClockState;
@@ -44,15 +52,19 @@ export interface PlatformState {
     downSignal: boolean;
     fopState: FopState | null;
     leftReferee: Decision | null;
+    liftType: string | null;
+    liftTypeKey: LiftTypeKey | null;
     mode: Mode | null;
     name: string;
     rightReferee: Decision | null;
     sessionDescription: string | null;
+    sessionInfo: string | null;
     sessionName: string | null;
 }
 
 export interface Session {
     description: string;
+    info: string;
     name: string;
 }
 
@@ -82,6 +94,10 @@ export default class Platform {
     private leftReferee: Decision | null = null;
 
     private liftingOrder: number[] = [];
+
+    private liftType: string | null = null;
+
+    private liftTypeKey: LiftTypeKey | null = null;
 
     private mode: Mode = 'WAIT';
 
@@ -146,10 +162,13 @@ export default class Platform {
             downSignal: this.downSignal,
             fopState: this.fopState,
             leftReferee: this.leftReferee,
+            liftType: this.liftType,
+            liftTypeKey: this.liftTypeKey,
             mode: this.mode,
             name: this.name,
             rightReferee: this.rightReferee,
             sessionDescription: this.currentSession?.description || null,
+            sessionInfo: this.currentSession?.info || null,
             sessionName: this.currentSession?.name || null,
         };
     }
@@ -171,6 +190,17 @@ export default class Platform {
 
     public setFopState(fopState: FopState): void {
         this.fopState = fopState;
+    }
+
+    public setLiftType({
+        key,
+        name,
+    }: {
+        key: OwlcmsLiftType;
+        name: string | null;
+    }): void {
+        this.liftTypeKey = (key?.toUpperCase() as LiftTypeKey) || null;
+        this.liftType = name;
     }
 
     public setMode(mode: Mode): void {
@@ -208,6 +238,7 @@ export default class Platform {
 
     public setSession(session: {
         description: string;
+        info: string;
         name: string;
     }): void {
         this.currentSession = session;
