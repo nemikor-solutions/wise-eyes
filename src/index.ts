@@ -209,10 +209,12 @@ app.post('/update', (request: Request<UpdateBody>, response) => {
     if (DEBUG) {
         console.log('/update');
         (({
+            /* eslint-disable @typescript-eslint/no-unused-vars */
             groupAthletes,
             leaders,
             liftingOrderAthletes,
             translationMap,
+            /* eslint-enable @typescript-eslint/no-unused-vars */
             ...params
         }) => {
             console.log(
@@ -296,4 +298,8 @@ app.get('/platform/:platform/status', (request, response) => {
     });
 });
 
-app.listen(8082);
+if (require.main === module) {
+    app.listen(process.env.PORT || 8082);
+}
+
+export default app;

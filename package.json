@@ -6,6 +6,7 @@
     "feed",
     "livestream",
     "monitor",
+    "obs",
     "owlcms",
     "vMix",
     "watch",
@@ -13,9 +14,14 @@
   ],
   "main": "dist/index.js",
   "scripts": {
-    "build": "npx tsc",
+    "build": "tsc",
     "dev": "nodemon src/index.ts",
-    "start": "node dist/index.js"
+    "lint": "concurrently \"npm:lint:*\"",
+    "lint:eslint": "npx eslint .",
+    "lint:ts": "tsc --noEmit --pretty -p tsconfig.json",
+    "prepublish": "npm run build",
+    "start": "node dist/index.js",
+    "test": "npm run lint"
   },
   "author": {
     "name": "Scott González",
@@ -31,6 +37,10 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/node": "^20.11.30",
+    "@typescript-eslint/eslint-plugin": "^8.8.1",
+    "@typescript-eslint/parser": "^8.8.1",
+    "concurrently": "^9.0.1",
+    "eslint": "^8.57.1",
     "nodemon": "^3.1.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.3"

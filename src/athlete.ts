@@ -106,7 +106,7 @@ export default class Athlete {
     }
 
     private getAttemptNumber(data: OwlcmsAthlete): number | null {
-        let requestedAttemptIndex = [
+        const requestedAttemptIndex = [
             ...data.sattempts,
             ...data.cattempts,
         ].findIndex((attempt) => attempt.liftStatus === 'request');
@@ -117,7 +117,7 @@ export default class Athlete {
     }
 
     private getNextWeight(data: OwlcmsAthlete): number | null {
-        let requestedAttempt = [
+        const requestedAttempt = [
             ...data.sattempts,
             ...data.cattempts,
         ].find((attempt) => attempt.liftStatus === 'request');
