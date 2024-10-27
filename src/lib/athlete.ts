@@ -34,7 +34,7 @@ export interface AthleteState {
     totalRank: number | null;
 }
 
-type AttemptState =
+export type AttemptState =
     | 'bad'
     | 'empty'
     | 'good'
