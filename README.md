@@ -29,3 +29,13 @@ Information about the current athlete.
 ### `/platform/:platform/lifting-order`
 
 Information about all athletes, in lifting order.
+
+## Web Socket Routes
+
+### `/ws/platform/:platform/status`
+
+The current state of the platform, including the current athlete, the athlete clock, the break clock, and decision information.
+
+### `/ws/platform/:platform/lifting-order`
+
+Information about all athletes, in lifting order.

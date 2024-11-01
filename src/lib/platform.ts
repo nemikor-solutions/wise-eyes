@@ -105,7 +105,11 @@ export default class Platform {
 
     private rightReferee: Decision | null = null;
 
-    public static getPlatform(name: string): Platform {
+    public static getPlatform(name: string, {
+        noPersist = false,
+    }: {
+        noPersist?: boolean;
+    } = {}): Platform {
         let platform = this.platforms.get(name);
 
         if (!platform) {
@@ -113,7 +117,9 @@ export default class Platform {
                 name,
             });
 
-            this.platforms.set(name, platform);
+            if (!noPersist) {
+                this.platforms.set(name, platform);
+            }
         }
 
         return platform;
