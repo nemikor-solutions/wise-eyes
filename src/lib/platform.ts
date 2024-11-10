@@ -10,18 +10,35 @@ import type {
 import Athlete from './athlete';
 import Clock from './clock';
 
-// TODO
-export type BreakType = string;
+export type BreakType =
+    | 'BEFORE_INTRODUCTION'
+    | 'CEREMONY'
+    | 'CHALLENGE'
+    | 'FIRST_CJ'
+    | 'FIRST_SNATCH'
+    | 'GROUP_DONE'
+    | 'JURY'
+    | 'MARSHAL'
+    | 'SNATCH_DONE'
+    | 'TECHNICAL';
 
-// TODO
-export type CeremonyType = string;
+export type CeremonyType =
+    | 'INTRODUCTION'
+    | 'MEDALS'
+    | 'OFFICIALS_INTRODUCTION';
 
 export type Decision =
     | 'bad'
     | 'good';
 
-// TODO
-export type FopState = string;
+export type FopState =
+    | 'BREAK'
+    | 'CURRENT_ATHLETE_DISPLAYED'
+    | 'DECISION_VISIBLE'
+    | 'DOWN_SIGNAL_VISIBLE'
+    | 'INACTIVE'
+    | 'TIME_RUNNING'
+    | 'TIME_STOPPED';
 
 export type LiftTypeKey =
     | 'CLEAN_AND_JERK'
@@ -29,6 +46,7 @@ export type LiftTypeKey =
 
 export type Mode =
     | 'BEFORE_INTRODUCTION'
+    | 'CURRENT_ATHLETE'
     | 'FIRST_CJ'
     | 'FIRST_SNATCH'
     | 'INTRODUCTION'

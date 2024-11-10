@@ -323,6 +323,7 @@ export default function createApp({
                 info: groupInfo,
                 name: groupName,
             });
+            // TODO: determine when this is undefined
             platform.updateAthletes(JSON.parse(liftingOrderAthletes));
             platform.setCurrentAthlete(parseInt(startNumber));
         });
