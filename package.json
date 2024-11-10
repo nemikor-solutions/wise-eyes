@@ -16,7 +16,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc --pretty -p tsconfig.json",
-    "dev": "nodemon src/index.ts",
+    "dev": "tsx watch src/index.ts",
     "lint": "concurrently \"npm:lint:*\"",
     "lint:eslint": "npx eslint .",
     "lint:ts": "tsc --noEmit --pretty -p tsconfig.json",
@@ -49,8 +49,8 @@
     "@typescript-eslint/parser": "^8.8.1",
     "concurrently": "^9.0.1",
     "eslint": "^8.57.1",
-    "nodemon": "^3.1.0",
     "ts-node": "^10.9.2",
+    "tsx": "^4.19.2",
     "typescript": "^5.4.3"
   }
 }
